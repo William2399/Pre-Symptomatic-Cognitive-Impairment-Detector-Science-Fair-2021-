@@ -1,0 +1,106 @@
+#FIGURE 1: Essential Libraries and Tools (Same for All Models)
+
+#Import data wrangling Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+import imblearn
+from imblearn.over_sampling import SMOTE
+import collections
+from collections import Counter
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.metrics import roc_curve, roc_auc_score,auc, accuracy_score,recall_score,maker_scorer
+from sklearn.metrics import confusion_matrix, precision_score,classification_report,f1_score
+from sklearn.preprocessing import MinMaxScaler, RobustScaler
+from sklearn.datasets import make_classification
+
+%matplotlib inline
+import warnings
+warnings.filterwarnings("ignore")
+
+#Import Machine Learning Algorithms
+
+#LinearSVC (Support Vector Classifier)
+from sklearn.svm import LinearSVC
+from sklearn.svm import SVR, SVC
+
+#LogisticRegression
+from sklearn.linear_model import LogisticRegression
+
+#RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+#GradientBoostingClassifier
+from sklearn.ensemble import GraidentBoostingClassifier
+
+#FIGURE 2: Reading in Excel Files
+#Reading in Excel Files
+
+X = pd.read_excel("Training/Data/GSE153712_lassoCoefficient_300_Data.xlsx", index=col=0).T
+y = pd.read_excel("Training/Data/GSE153712_Status.xlsx", index_col=0.)T
+print(X.shape)
+print(y.shape)
+
+#Results 
+(565, 300)
+(565, 1)
+
+#FIGURE 3: #Splitting into Training and Testing
+
+#Split into Training and Testing
+
+X_trainval, X_test, y_trainval, y_test = train_test_split(X, y, stratify=y, random_state=10)
+
+#Checking Distribution
+print(X_trainval.shape)
+print(X_test.shape)
+print(y_trainval.shape)
+print(y_test.shape)
+
+#Results
+(423, 300)
+(142, 300)
+(423, 1)
+(142, 1)
+
+#FIGURE 4: Balancing the Number of Samples
+
+counter = collections.Counter(y_trainval['Status'])
+print(counter)
+strategy = {0:353, 1:300}
+oversample = SMOTE(sampling_strategy=strategy)
+X_imb, y_imb = oversample.fit_resample(X_trainval, y_trainval)
+counter1 = collections.Counter(y_imb['Status'])
+print(counter1)
+
+#Results
+Counter({0: 353, 1:70})
+Counter({0: 353, 1:300})
+
+#FIGURE 5: Splitting X_imb and y_imb (New Balanced Variables)
+
+X_train, X_valid, y_train, y_valid = train_test_split(X_imb, y_imb, stratify=y_imb, random_state=10)
+
+#FIGURE 6: SVC (Support Vector Classifier) Algorithm Results
+
+#SVC (Creating SVC Model with Specific Parameters)
+svc = SVC(kernel='rbf',C=0.312, gamma=3.05, probability=True)
+svc.fit(X_train, y_train)
+
+#Model Accuracy - Training Set (With Parameters Above)
+print("Training Set Accuracy: {:.3f}".format(svc.score(X_train, y_train)))
+print()
+
+#Model Accuracy - Testing Set (With Parameters Above)
+print("Validation Set Accuracy: {:.3f}".format(svc.score(X_valid, y_valid)))
+print()
+
+#Model Accuracy - Validation Set
+print("Testing Set Accuracy: {:.3f}".format(svc.score(X_test, y_test)))
+
+#Results
+Training Set Accuracy: 0.935
+Validation Set Accuracy: 0.909
+Testing Set Accuracy: 0.803
